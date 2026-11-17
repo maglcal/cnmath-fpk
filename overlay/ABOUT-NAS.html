@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>关于 / 数据来源 · 中小学知识图谱（本地版）</title>
+<style>
+  :root { --fg:#1b1f24; --muted:#5c6672; --line:#e3e7ec; --bg:#f6f8fa; --card:#fff; --accent:#2563eb; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:28px 18px 60px; background:var(--bg); color:var(--fg);
+         font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+  main { max-width:760px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  h2 { font-size:17px; margin:28px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  p, li { margin:6px 0; }
+  a { color:var(--accent); word-break:break-all; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin:14px 0; }
+  .muted { color:var(--muted); font-size:13px; }
+  .warn { background:#fff8e6; border-color:#f0d9a0; }
+  code { background:#f0f2f5; padding:1px 5px; border-radius:4px; font-size:13px; }
+  .switch { display:flex; align-items:flex-start; gap:12px; padding:14px 0; }
+  .switch input { appearance:auto; -webkit-appearance:checkbox; width:18px; height:18px; margin-top:3px; flex:0 0 auto; }
+  .switch label { font-weight:600; cursor:pointer; }
+  .switch small { display:block; font-weight:400; color:var(--muted); font-size:13px; margin-top:2px; }
+  .btn { display:inline-block; margin-top:10px; padding:8px 16px; border:1px solid var(--line);
+         border-radius:7px; background:#fff; color:var(--fg); text-decoration:none; font-size:14px; }
+  ul { padding-left:22px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>关于 / 数据来源</h1>
+  <p class="muted">中小学知识图谱（本地版） · 飞牛 fnOS 应用</p>
+
+  <div class="card">
+    <strong>本应用基于原项目改编，不是原项目的官方版本。</strong>
+    <p>原作者署名：<strong>xiaoyang111222（@hassanyehiaa）</strong>。知识图谱、题库、自适应前置诊断
+      及全部站点页面来自开源项目
+      <a href="https://github.com/xiaoyang111222/cn-math-taxonomy">cn-math-taxonomy</a>；
+      原在线站点 <a href="https://math.pansgo.com/">math.pansgo.com</a>。</p>
+    <p>原项目采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.zh-hans">CC BY-NC 4.0（署名-非商业性使用 4.0 国际）</a> 授权，
+      <a href="LICENSE-upstream.txt">许可全文（随包，点击查看）</a>。本应用永久免费、非商业，
+      <strong>不暗示与原作者存在任何合作、代理或背书关系</strong>；原作者与本应用之间
+      不构成合作、代理或背书关系。</p>
+    <p>本应用由第三方改编者自行维护。<strong>原项目与原作者不为本应用提供任何支持、服务或承诺</strong>；
+      应用使用问题请勿向原作者提出。数据与题目问题欢迎到
+      <a href="https://github.com/xiaoyang111222/cn-math-taxonomy/issues/new/choose">原仓库提交 Issue</a> 反馈。</p>
+    <p class="muted">第三方组件：Cytoscape 3.30.4、dagre 0.8.5、cytoscape-dagre 2.5.0、
+      qrcode-generator 仍按各自 MIT 许可分发，<a href="assets/vendor/VENDOR.md">许可文本见 assets/vendor/</a>，原许可保持不变。</p>
+  </div>
+
+  <h2>本应用做了哪些改动</h2>
+  <div class="card">
+    <ul>
+      <li>把站点打包为飞牛本地应用：由 CGI 脚本静态分发，无服务端、不监听端口、无常驻进程。</li>
+      <li>改写页面路径以适配 CGI 子路径；禁用 PWA / Service Worker 与离线缓存。</li>
+      <li>移除商品推广页、第三方导流链接、原站访问统计与第三方信标。</li>
+      <li>移除仅供搜索引擎收录的知识点索引静态页（生成产物使用根绝对路径，在 NAS 子路径下会跳错）。</li>
+      <li>新增本页、安装向导的许可与统计告知，以及下方独立可插拔的匿名使用统计模块。</li>
+      <li>为 <code>.json</code> / <code>.webmanifest</code> 等类型补 MIME 与缓存头。</li>
+    </ul>
+    <p class="muted">改编部分同样按 CC BY-NC 4.0 提供，未对下游附加额外限制。
+      完整的逐版本改动清单见 <a href="CHANGES.html">CHANGES.html（改动清单）</a>，每版随包同步更新。</p>
+  </div>
+
+  <h2>内容使用提示</h2>
+  <div class="card warn">
+    <p>原作者已明确注明：知识点拆分粒度、掌握标准、诊断题答案，尤其<strong>先修关系</strong>
+      仍需一线教师审核后才能用于教学、诊断或学习路径推荐；高中题与英语题未做盲解复核；
+      小学册次目录与高中章节目录多数未逐页核对官方教材。</p>
+    <p>请把本应用当作自学与复习辅助工具，<strong>不要作为权威教学结论</strong>。发现题目或数据问题，
+      建议到<a href="https://github.com/xiaoyang111222/cn-math-taxonomy/issues/new/choose">原仓库提交 Issue</a> 反馈。</p>
+  </div>
+
+  <h2>匿名使用统计</h2>
+  <div class="card">
+    <p>统计是<strong>独立可插拔</strong>模块，与知识图谱、诊断、档案等功能完全隔离。
+      <strong>默认关闭</strong>：不开启就不会发送任何数据。你可以在安装向导中选择是否开启（默认不开启），
+      也可以随时在下方主动开启或一键关闭，关闭后零上报；本页开关优先于安装向导的选择。</p>
+    <div class="switch">
+      <input type="checkbox" id="stats-enabled">
+      <label for="stats-enabled">主动开启匿名使用统计（默认关闭）
+        <small>只上报「首次安装 / 每次打开 / 版本升级」三类事件与随机设备标识的加盐哈希；
+          不采集任何可识别个人信息，不采集答题内容、孩子档案与错题数据，也不上报页面内交互细节。
+          数据只发往本应用自建的统计服务，不发往任何第三方；服务端同样不保存 IP 与浏览器 UA。</small>
+      </label>
+    </div>
+    <p class="muted" id="stats-state"></p>
+    <p class="muted">孩子档案、错题本与诊断进度始终保存在<strong>本机浏览器</strong>，不会上传、也不会跨设备同步；
+      清除浏览器数据会一并丢失，请自行备份。</p>
+    <a class="btn" href="./">返回应用首页</a>
+  </div>
+
+  <p class="muted" style="margin-top:26px">壳工程（manifest、CGI 脚本、安装向导、本页与统计适配层）Copyright © 2026 许诺，按 MIT License 授权；
+    站点内容 Copyright © 原作者，按 CC BY-NC 4.0 授权。</p>
+</main>
+<!-- 构建脚本须在本行之前注入 stats-endpoint.js（仅当配置了统计服务）。
+     关于页只读写开关，不产生任何上报事件。 -->
+<script>window.CNM_STATS_NO_BOOT = true;</script>
+<script src="assets/stats-config.js"></script>
+<script>
+(function () {
+  var box = document.getElementById('stats-enabled');
+  var state = document.getElementById('stats-state');
+  var configured = !!(window.CNM_STATS_CONFIG && window.CNM_STATS_CONFIG.endpoint &&
+                      window.CNM_STATS_CONFIG.appId && window.CNM_STATS_CONFIG.appSalt);
+  if (!configured) {
+    box.checked = false;
+    box.disabled = true;
+    state.textContent = '当前构建未配置统计服务，不会发送任何数据。';
+    return;
+  }
+  box.checked = window.cnmathStatsIsEnabled();
+  state.textContent = box.checked
+    ? '当前状态：已开启（你在安装向导或本页选择了开启），应用打开时会发送匿名事件。'
+    : '当前状态：默认关闭，不会发送任何数据。勾选上方复选框才会开启。';
+  box.addEventListener('change', function () {
+    window.cnmathStatsSetEnabled(box.checked);
+    state.textContent = box.checked
+      ? '已主动开启。下次打开应用时生效；本次不会补发历史事件。'
+      : '已关闭，立即生效，不再发送任何数据。';
+  });
+})();
+</script>
+</body>
+</html>

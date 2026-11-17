@@ -1,0 +1,15 @@
+appname=cn-math-taxonomy
+version=0.1.0
+display_name=中小学知识图谱（本地版）
+desc=基于开源项目 cn-math-taxonomy 改编，把知识图谱与自适应诊断搬到飞牛本地运行：纯静态站点，零后端、零端口、零常驻进程。永久免费，无商业推广、无内购、无付费版本。原项目采用 CC BY-NC 4.0，已保留原作者署名、原仓库与原站链接、许可全文，并标注基于原项目改编；逐版本改动清单见应用内「关于 / 数据来源」页。本应用由第三方独立改编维护，与原项目相互独立。原项目注明部分题库与先修关系仍待教师审核，请勿作为权威教学结论。
+source=thirdparty
+platform=all
+maintainer=许诺
+maintainer_url=https://example.com
+os_min_version=1.2.0
+desktop_uidir=ui
+desktop_applaunchname=cn-math-taxonomy.Application
+ctl_stop=true
+checkport=false
+disable_authorization_path=true
+changelog=修复桌面图标缺失与打开无反应（根因修复，0.1.0.3–0.1.0.6 未愈）：真机取证确认入口注册始终正常，病灶是 manifest 的 ctl_stop=false 使应用被系统注册为不可启动类型（与 python/node 运行时包同型），安装后状态停留在 nostart，而桌面会整体过滤 nostart 状态的入口，图标因此不出现、点击无反应。现改为 ctl_stop=true，安装后状态进入 running，桌面图标与打开行为恢复正常；0.1.0.6 的根级 ui/www 补链接方案实测无效，本版已移除该逻辑。匿名使用统计为独立可插拔模块，默认关闭，安装向导可选择是否开启，安装后也可在「关于 / 数据来源」页随时主动开启或一键关闭，仅上报三类匿名事件。

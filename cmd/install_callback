@@ -1,0 +1,83 @@
+#!/bin/bash
+# 安装后：向导选择落盘 + 文件完整性检查。
+#
+# 向导字段是否注入生命周期脚本取决于 fnOS 版本；未注入（空值）时按各自的安全方向处理：
+#  - wizard_agree_terms（同意许可）：空值放行——由 wizard/install 的 required 规则兜底，
+#    装不上比漏勾一个框严重得多。
+#  - wizard_stats_consent（统计开关）：空值绝不凭空开启——授权条件 4 要求默认关闭、
+#    仅主动开启，漏开比误开安全，容错方向与上面相反，这是有意为之。
+# 向导字段值在不同 fnOS 版本里可能是裸值（on）或 JSON 形态（["on"]），比对前先规范化。
+case "${wizard_agree_terms:-}" in
+  ""|*agree*|*true*|1|yes|on) ;;
+  *)
+    echo "未同意《数据来源与使用许可》说明，已取消安装。" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>/dev/null || true
+    exit 1 ;;
+esac
+
+# 定位安装根：fnOS 把 app.tgz 解到 TRIM_APPDEST，内部剥掉 app/ 层
+# （安装根下直接是 ui/ 与 www/，不是 app/ui）；$0 基点为兜底。按标志文件探测，
+# 兼容带 app/ 层的布局，不写死相对层级。
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+APP_ROOT=""
+_cands=()
+[ -n "${TRIM_APPDEST:-}" ] && _cands+=("${TRIM_APPDEST}" "${TRIM_APPDEST}/app")
+_cands+=("${SELF_DIR}/.." "${SELF_DIR}/../app")
+for _cand in "${_cands[@]}"; do
+  if [ -f "${_cand}/ui/index.cgi" ] && [ -f "${_cand}/www/index.html" ]; then
+    APP_ROOT="$(cd "${_cand}" 2>/dev/null && pwd)"; break
+  fi
+done
+unset _cand _cands
+
+APP_DIR="/var/apps/${TRIM_APPNAME:-cn-math-taxonomy}"
+
+# 布局自诊断（0.1.0.5 起）：把安装实况留档到持久区 TRIM_PKGVAR/install-layout.log，
+# 只读快照不改文件。真机排查安装落位全靠它。生命周期脚本从 tpk 临时目录执行，
+# 所以一切以 APP_DIR（应用目录根）与 TRIM_APPDEST 为基点，不依赖 $0 位置。
+_layout_log="${TRIM_PKGVAR:-/tmp}/install-layout.log"
+{
+  echo "==== $(date '+%F %T') ${TRIM_APP_STATUS:-?} appver=${TRIM_APPVER:-?} ===="
+  echo "APP_ROOT=${APP_ROOT:-<未找到>}"
+  echo "TRIM_APPDEST=${TRIM_APPDEST:-<空>}"
+  echo "TRIM_APPDEST_VOL=${TRIM_APPDEST_VOL:-<空>}"
+  echo "TRIM_PKGINST_TEMP_DIR=${TRIM_PKGINST_TEMP_DIR:-<空>}"
+  echo "TRIM_SYS_VERSION=${TRIM_SYS_VERSION:-<空>}"
+  echo "APP_DIR=${APP_DIR}"
+  echo "-- target 符号链接 --"
+  readlink "${APP_DIR}/target" 2>&1 || echo "(readlink 失败)"
+  echo "-- 应用目录根 ls --"
+  ls -la "${APP_DIR}" 2>&1 | head -30
+  echo "-- TRIM_APPDEST ls --"
+  ls -la "${TRIM_APPDEST:-}" 2>&1 | head -30
+  echo "-- 标志文件 find --"
+  find "${APP_DIR}" -maxdepth 4 \( -name 'index.cgi' -o -name 'index.html' \) 2>/dev/null | head -20
+} >> "${_layout_log}" 2>&1 || true
+unset _layout_log
+
+if [ -z "${APP_ROOT}" ]; then
+  echo "应用文件不完整：静态站点或 CGI 入口缺失，请重新安装。" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>/dev/null || true
+  exit 1
+fi
+
+# 匿名使用统计：安装向导选择 → 持久化（TRIM_PKGVAR，升级不丢）+ 烧写 stats-config.js
+# 的 INSTALL_DEFAULT 锚点（出厂 false；烧成 true 才等于用户显式开启）。
+# 升级解包会把 stats-config.js 重置为出厂值，由 upgrade_callback 按持久化选择恢复。
+CONSENT_FILE="${TRIM_PKGVAR:-/tmp}/cnmath-stats-consent"
+STATS_CFG="${APP_ROOT}/www/assets/stats-config.js"
+enable_stats() {
+  printf '1' > "${CONSENT_FILE}" 2>/dev/null || true
+  # 幂等：只把出厂 false 烧成 true；锚点缺失时不改动文件（保持默认关闭）
+  sed -i 's/var INSTALL_DEFAULT = false;/var INSTALL_DEFAULT = true;/' "${STATS_CFG}" 2>/dev/null || true
+}
+_stats_pick="$(printf '%s' "${wizard_stats_consent:-}" | tr -d '[]"[:space:]' | tr 'A-Z' 'a-z')"
+case "${_stats_pick}" in
+  on|1|yes|true|agree)
+    enable_stats ;;
+  off|0|no|false)
+    printf '0' > "${CONSENT_FILE}" 2>/dev/null || true ;;
+  *)
+    # 字段未注入/形态未知（repair 重跑等）：沿用持久化里已有的显式选择，
+    # 只有用户曾显式选择开启才恢复开启；其余一律保持关闭。
+    [ "$(cat "${CONSENT_FILE}" 2>/dev/null)" = "1" ] && enable_stats ;;
+esac
+exit 0

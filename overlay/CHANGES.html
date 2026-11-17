@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN" data-version="0.1.0" data-upstream-commit="aa2c22058222d0df404f1819e2fbdb97a62049ea">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>改动清单 · 中小学知识图谱（本地版）</title>
+<style>
+  :root { --fg:#1b1f24; --muted:#5c6672; --line:#e3e7ec; --bg:#f6f8fa; --card:#fff; --accent:#2563eb; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:28px 18px 60px; background:var(--bg); color:var(--fg);
+         font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+  main { max-width:760px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  h2 { font-size:17px; margin:26px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  a { color:var(--accent); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin:14px 0; }
+  .muted { color:var(--muted); font-size:13px; }
+  code { background:#f0f2f5; padding:1px 5px; border-radius:4px; font-size:13px; }
+  ul { padding-left:22px; }
+  .btn { display:inline-block; margin-top:10px; padding:8px 16px; border:1px solid var(--line);
+         border-radius:7px; background:#fff; color:var(--fg); text-decoration:none; font-size:14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>改动清单</h1>
+  <p class="muted">本页随每个版本同步更新，是原作者书面确认（2026-11-16）条件 2 与条件 5 的要求。</p>
+
+  <div class="card">
+    <p><strong>壳版本</strong> <code>0.1.0</code>　<strong>上游 commit</strong>
+      <code>aa2c22058222d0df404f1819e2fbdb97a62049ea</code></p>
+    <p><strong>原项目</strong> <a href="https://github.com/xiaoyang111222/cn-math-taxonomy">cn-math-taxonomy</a>
+      （作者 xiaoyang111222 / @hassanyehiaa），<a href="https://math.pansgo.com/">math.pansgo.com</a>，
+      按 <a href="LICENSE-upstream.txt">CC BY-NC 4.0</a> 授权。</p>
+    <p><strong>显示名</strong> 中小学知识图谱（本地版）。本应用基于原项目改编，不是原项目官方版本，
+      与原作者不构成合作、代理或背书关系。</p>
+  </div>
+
+  <h2>0.1.0 · 首个测试版</h2>
+  <div class="card">
+    <ul>
+      <li><strong>形态</strong>：把上游纯静态站打包为飞牛 fnOS 本地应用。由 <code>app/ui/index.cgi</code> 静态分发，
+        无服务端、不监听端口、无常驻进程、不申请开放 API 权限、不访问 NAS 文件。</li>
+      <li><strong>路径适配</strong>：站点挂在 CGI 子路径下，补齐 <code>.json</code> / <code>.webmanifest</code> 等
+        MIME 类型与缓存头，拒绝目录穿越。</li>
+      <li><strong>禁用 PWA</strong>：移除 <code>pwa.js</code> / <code>sw.js</code> / <code>manifest.webmanifest</code>
+        的引用（NAS 局域网 HTTP 下 Service Worker 不生效，留着只会拿到旧缓存）。</li>
+      <li><strong>移除商业与第三方元素</strong>：删除 <code>goods/</code> 商品推广页、知识点索引
+        <code>kp/</code> 入口、首页第三方智商测试卡片、诊断页第三方搜索导流、分享图二维码外链；
+        清空 Cloudflare 信标与上游统计端点。产物在关闭统计时零外部请求。</li>
+      <li><strong>统计（独立可插拔，默认关闭）</strong>：新增 <code>assets/stats-config.js</code> 适配层，
+        接管上游事件钩子但禁用其原始上报。只有用户在本页主动开启后才发
+        <code>install</code> / <code>open</code> / <code>update</code> 三类匿名事件；
+        不采集答题内容、孩子档案、错题数据或任何可识别个人信息。可随时一键关闭。</li>
+      <li><strong>署名与合规页</strong>：新增 <code>ABOUT-NAS.html</code>（原作者署名、原仓库链接、
+        原在线站点链接、CC BY-NC 4.0 许可全文、改编声明、改动清单、内容免责、统计开关），
+        随包附 <code>LICENSE-upstream.txt</code> 全文；<code>assets/vendor/</code> 下各 MIT 许可原样保留。</li>
+      <li><strong>安装向导</strong>：新增数据来源、许可、内容免责与统计默认关闭的告知，需勾选同意后安装。</li>
+      <li><strong>未改动</strong>：上游图谱数据、题库、诊断逻辑、页面样式与前端交互代码均未修改。</li>
+    </ul>
+  </div>
+
+  <h2>0.1.0.7 · 测试迭代</h2>
+  <div class="card">
+    <ul>
+      <li><strong>修复桌面图标缺失与打开无反应（根因修复）</strong>：真机取证确认入口注册始终正常，
+        病灶在 manifest 的 <code>ctl_stop=false</code>——它使应用被系统注册为「不可启动」类型
+        （与 python / node 运行时包同型），安装后状态停留在 <code>nostart</code>，而桌面会整体过滤
+        <code>nostart</code> 状态的入口，图标因此不出现、点击无反应。现改为 <code>ctl_stop=true</code>，
+        安装后状态进入 <code>running</code>，桌面图标与打开行为恢复正常。</li>
+      <li><strong>移除无效的补链接逻辑</strong>：0.1.0.6 在应用目录根补 <code>ui</code> / <code>www</code>
+        符号链接的方案实测无效（安装脚本无该目录写权限，链接从未建成；桌面与入口也不依赖该路径），
+        本版移除该逻辑，安装布局自诊断日志保留。</li>
+    </ul>
+  </div>
+
+  <h2>0.1.0.6 · 测试迭代</h2>
+  <div class="card">
+    <ul>
+      <li><strong>修复桌面图标缺失与打开失败</strong>（0.1.0.5 真机诊断定位到桌面入口读取位置）：
+        桌面入口按「应用目录 <code>ui/config</code>」读取，而应用文件安装在 <code>target/</code> 内；
+        现安装时在应用目录根补 <code>ui</code> / <code>www</code> 链接指向 <code>target/</code> 内同名目录，
+        桌面与应用卡片即可发现入口。静态分发自 0.1.0.5 起正常（浏览器可直接访问）。
+        <span class="muted">（该方案后经 0.1.0.7 真机取证证实无效：链接因权限从未建成，桌面问题另有根因，见 0.1.0.7。）</span></li>
+    </ul>
+  </div>
+
+  <h2>0.1.0.5 · 测试迭代</h2>
+  <div class="card">
+    <ul>
+      <li><strong>继续处置桌面图标缺失与打开失败</strong>（0.1.0.4 真机问题仍未解决）：
+        桌面入口 ID 对齐飞牛开发者文档范式（<code>cn-math-taxonomy.Application</code>）；
+        包结构对齐已验证应用（随包 LICENSE 移入应用文件区，包外层保持最小条目集）；
+        新增安装布局自诊断：安装 / 升级时把目录实况留档到持久区
+        <code>install-layout.log</code>，用于精确定位应用文件的安装落位。</li>
+    </ul>
+  </div>
+
+  <h2>0.1.0.4 · 测试迭代</h2>
+  <div class="card">
+    <ul>
+      <li><strong>修复桌面图标缺失与打开失败</strong>（0.1.0.3 真机问题）：按飞牛开发者文档
+        （应用入口 / index.cgi 规范）修正两处偏差——静态文件根路径改用文档规定的安装路径
+        （原自推导方式在真实调用形态下会 404）；桌面入口配置补齐规范要求的字段
+        （protocol / port），并精简为文档定义的字段集。</li>
+    </ul>
+  </div>
+
+  <h2>0.1.0.3 · 测试迭代</h2>
+  <div class="card">
+    <ul>
+      <li><strong>修复安装失败</strong>（0.1.0.2 真机问题）：安装脚本对应用安装目录的探测
+        与 fnOS 实际解包布局不符，导致安装时报「应用文件不完整」。已改为自动探测安装根
+        （兼容两种解包布局），并兼容安装向导选项值的不同序列化形态；
+        统计选择、烧写与升级恢复链路同步修正。</li>
+    </ul>
+  </div>
+
+  <h2>0.1.0.2 · 测试迭代</h2>
+  <div class="card">
+    <ul>
+      <li><strong>安装向导增加统计选择</strong>：新增「匿名使用统计（可选，默认关闭）」步骤，
+        安装时即可选择是否开启，默认选项为「不开启」；不开启时零上报。
+        安装后仍可在「关于 / 数据来源」页随时主动开启或一键关闭，页面开关优先于安装向导的选择。
+        统计契约未变：仍默认关闭、仅上报 <code>install</code> / <code>open</code> / <code>update</code>
+        三类匿名事件，采集字段与上报目的地均不变。</li>
+      <li><strong>0.1.0.1</strong>：首个可安装测试包（勾选同意后安装；统计只能在应用内开启）。</li>
+    </ul>
+  </div>
+
+  <h2>说明</h2>
+  <div class="card">
+    <p>应用永久免费，无商业推广、无内购、无付费版本，不通过应用或附带服务取得任何直接或间接收益。
+      孩子档案、错题本与诊断进度仍保存在浏览器本地，未做 NAS 侧持久化，清除浏览器数据会丢失。</p>
+    <p class="muted">后续同步上游新版本时，本页会追加对应版本条目并更新上游 commit；
+      应用形态、统计方式或收益模式如有变化，须事先重新取得原作者书面确认。</p>
+    <a class="btn" href="ABOUT-NAS.html">关于 / 数据来源</a>
+    <a class="btn" href="./">返回应用首页</a>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,61 @@
+#!/bin/bash
+# 升级后：确认 CGI 入口与站点目录齐备，并恢复安装向导的统计选择。不重启任何服务。
+#
+# 升级解包会把 www/assets/stats-config.js 重置为出厂值
+# （INSTALL_DEFAULT=false，授权条件 4 的默认关闭），此处按持久区
+# TRIM_PKGVAR/cnmath-stats-consent 里记录的用户显式选择恢复：
+# 只有用户曾在安装向导显式选择「开启」才重新烧写为 true，其余保持关闭。
+#
+# 安装根定位与 install_callback 同款：app.tgz 解到 TRIM_APPDEST 时内部剥掉
+# app/ 层（安装根下直接是 ui/ 与 www/），$0 基点为兜底，按标志文件探测。
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+APP_ROOT=""
+_cands=()
+[ -n "${TRIM_APPDEST:-}" ] && _cands+=("${TRIM_APPDEST}" "${TRIM_APPDEST}/app")
+_cands+=("${SELF_DIR}/.." "${SELF_DIR}/../app")
+for _cand in "${_cands[@]}"; do
+  if [ -f "${_cand}/ui/index.cgi" ] && [ -f "${_cand}/www/index.html" ]; then
+    APP_ROOT="$(cd "${_cand}" 2>/dev/null && pwd)"; break
+  fi
+done
+unset _cand _cands
+
+# 桌面入口兼容（0.1.0.6，与 install_callback 同款）：升级解包后在应用目录根
+# 补 ui/www 符号链接，保证桌面入口始终可被发现。幂等，已有则不动。
+APP_DIR="/var/apps/${TRIM_APPNAME:-cn-math-taxonomy}"
+if [ -n "${APP_ROOT}" ]; then
+  for _lnk in ui www; do
+    if [ ! -e "${APP_DIR}/${_lnk}" ] && [ ! -L "${APP_DIR}/${_lnk}" ] && [ -d "${APP_ROOT}/${_lnk}" ]; then
+      ln -s "${APP_ROOT}/${_lnk}" "${APP_DIR}/${_lnk}" 2>/dev/null || true
+    fi
+  done
+  unset _lnk
+fi
+
+# 布局自诊断（0.1.0.5 起，与 install_callback 同款）：升级路径也留档，
+# 便于对比安装/升级落位差异。以 APP_DIR 为基点，不依赖 $0 位置。
+_layout_log="${TRIM_PKGVAR:-/tmp}/install-layout.log"
+{
+  echo "==== $(date '+%F %T') ${TRIM_APP_STATUS:-?} appver=${TRIM_APPVER:-?} (upgrade) ===="
+  echo "APP_ROOT=${APP_ROOT:-<未找到>}"
+  echo "TRIM_APPDEST=${TRIM_APPDEST:-<空>}"
+  echo "TRIM_SYS_VERSION=${TRIM_SYS_VERSION:-<空>}"
+  echo "-- target 符号链接 --"
+  readlink "${APP_DIR}/target" 2>&1 || echo "(readlink 失败)"
+  echo "-- 应用目录根 ls --"
+  ls -la "${APP_DIR}" 2>&1 | head -30
+  echo "-- 标志文件 find --"
+  find "${APP_DIR}" -maxdepth 4 \( -name 'index.cgi' -o -name 'index.html' \) 2>/dev/null | head -20
+} >> "${_layout_log}" 2>&1 || true
+unset _layout_log
+
+if [ -z "${APP_ROOT}" ]; then
+  echo "应用文件不完整：静态站点或 CGI 入口缺失，请重新安装。" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>/dev/null || true
+  exit 1
+fi
+CONSENT_FILE="${TRIM_PKGVAR:-/tmp}/cnmath-stats-consent"
+STATS_CFG="${APP_ROOT}/www/assets/stats-config.js"
+if [ "$(cat "${CONSENT_FILE}" 2>/dev/null)" = "1" ]; then
+  sed -i 's/var INSTALL_DEFAULT = false;/var INSTALL_DEFAULT = true;/' "${STATS_CFG}" 2>/dev/null || true
+fi
+exit 0

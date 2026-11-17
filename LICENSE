@@ -1,0 +1,45 @@
+本仓库（cnmath-fpk）是「把上游静态站打包为飞牛 fnOS 应用」的壳工程，包含两类内容，许可分别适用：
+
+一、自研壳工程
+范围：manifest、cmd/、config/、app/ui/config、app/ui/index.cgi、wizard/、overlay/、tools/、build.sh、图标缩放产物。
+Copyright © 2026 许诺
+按 MIT License 授权：
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+二、上游站点内容
+范围：构建产出的 app/www/ 下所有站点页面、数据、样式、脚本与原项目许可文本。
+来源：https://github.com/xiaoyang111222/cn-math-taxonomy
+许可：Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+完整条款随包保存在 app/www/LICENSE-upstream.txt。
+要求：保留原仓库署名与来源链接、标明修改、非商业使用、衍生部分同样按 BY-NC 提供。
+assets/vendor/ 下的 Cytoscape、dagre、cytoscape-dagre、qrcode-generator 仍按各自 MIT 许可，不改为 CC BY-NC。
+
+三、合并分发与授权确认
+.fpk 安装包整体包含上游内容，因此整体使用受 CC BY-NC 4.0 约束，永久免费、非商业。
+
+分发渠道：飞牛官方应用中心（免费上架）。上架范围与渠道已由项目负责人在 2026-11-16 书面确认；原作者 xiaoyang111222 于 2026-11-16 书面确认同意本次非商业再分发，并附 7 项条件。请求函见 AUTHORIZATION-REQUEST.md，回信与条件落点见 AUTHORIZATION-GRANTED.md，逐条合规约束见 COMPLIANCE.md。
+
+该确认的边界（必须遵守）：
+- 仅限上述非商业分发，不构成双方的合作、代理或背书关系；
+- 应用永久免费，无商业推广、无内购、无付费版本，不得通过应用本身或附带服务取得任何直接或间接收益；
+- 每版同步更新改动清单；应用形态、统计方式或收益模式有任何变化，须事先重新取得原作者书面确认；
+- 违反任一条件，确认自动失效，须即时下架处理。
+
+任何商业使用（付费课程、付费 App、机构收费服务、售卖题库等）均不在 CC BY-NC 4.0 许可范围内，须另行联系原作者取得商业授权。

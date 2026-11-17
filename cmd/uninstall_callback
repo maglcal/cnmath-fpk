@@ -1,0 +1,11 @@
+#!/bin/bash
+# 卸载后：浏览器本地数据由用户自行管理，应用不写 NAS 用户目录。
+# 清理安装期在应用目录根补的 ui/www 符号链接（只删链接本身，不动真实目录）。
+APP_DIR="/var/apps/${TRIM_APPNAME:-cn-math-taxonomy}"
+for _lnk in ui www; do
+  if [ -L "${APP_DIR}/${_lnk}" ]; then
+    rm -f "${APP_DIR}/${_lnk}" 2>/dev/null || true
+  fi
+done
+unset _lnk
+exit 0
