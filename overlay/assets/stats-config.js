@@ -59,7 +59,11 @@
       var u = localStorage.getItem(LS_UUID);
       if (!u) {
         var b = new Uint8Array(16);
-        (window.crypto || window.msCrypto).getRandomValues(b);
+        if (window.crypto && window.crypto.getRandomValues) {
+          window.crypto.getRandomValues(b);
+        } else {
+          for (var i = 0; i < 16; i++) b[i] = Math.floor(Math.random() * 256);
+        }
         u = Array.prototype.map.call(b, function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
         localStorage.setItem(LS_UUID, u);
       }
@@ -73,6 +77,64 @@
     }).join('').slice(0, 32);
   }
 
+  /* 纯 JS SHA-256（FIPS 180-4）。仅在 crypto.subtle 不可用（http 等非安全上下文）
+   * 时兜底；输出与 WebCrypto 逐位一致（标准测试向量验证），哈希规则不变。 */
+  function sha256Hex(str) {
+    var utf8 = [];
+    for (var i = 0; i < str.length; i++) {
+      var c = str.charCodeAt(i);
+      if (c < 0x80) utf8.push(c);
+      else if (c < 0x800) utf8.push(0xc0 | (c >> 6), 0x80 | (c & 63));
+      else if (c < 0xd800 || c >= 0xe000) utf8.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+      else { i++; var c2 = 0x10000 + (((c & 0x3ff) << 10) | (str.charCodeAt(i) & 0x3ff));
+             utf8.push(0xf0 | (c2 >> 18), 0x80 | ((c2 >> 12) & 63), 0x80 | ((c2 >> 6) & 63), 0x80 | (c2 & 63)); }
+    }
+    var H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+    var K = [
+      0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+      0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+      0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+      0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+      0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+      0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+      0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+      0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+    ];
+    var l = utf8.length;
+    var bitLen = l * 8;
+    utf8.push(0x80);
+    while (utf8.length % 64 !== 56) utf8.push(0);
+    utf8.push(0, 0, 0, 0, (bitLen >>> 24) & 255, (bitLen >>> 16) & 255, (bitLen >>> 8) & 255, bitLen & 255);
+    var w = new Array(64);
+    for (var off = 0; off < utf8.length; off += 64) {
+      var j;
+      for (j = 0; j < 16; j++) {
+        w[j] = (utf8[off + j * 4] << 24) | (utf8[off + j * 4 + 1] << 16) |
+               (utf8[off + j * 4 + 2] << 8) | utf8[off + j * 4 + 3];
+      }
+      for (j = 16; j < 64; j++) {
+        var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);
+        var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);
+        w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;
+      }
+      var a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+      for (j = 0; j < 64; j++) {
+        var S1 = ((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7));
+        var ch = (e & f) ^ (~e & g);
+        var t1 = (h + S1 + ch + K[j] + w[j]) | 0;
+        var S0 = ((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10));
+        var maj = (a & b) ^ (a & c) ^ (b & c);
+        var t2 = (S0 + maj) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+      H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+    }
+    var out = '';
+    for (var k = 0; k < 8; k++) out += ('00000000' + (H[k] >>> 0).toString(16)).slice(-8);
+    return out;
+  }
+
   function today() {
     var d = new Date();
     return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
@@ -84,14 +146,19 @@
   function getMachineHash() {
     if (machineHashPromise) return machineHashPromise;
     var code = uuid();
-    if (!code || !window.crypto || !window.crypto.subtle || !window.TextEncoder) {
-      machineHashPromise = Promise.resolve(null);
-      return machineHashPromise;
+    if (!code) { machineHashPromise = Promise.resolve(null); return machineHashPromise; }
+    var input = CFG.appSalt + SALT_JOIN + code;
+    if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+      machineHashPromise = window.crypto.subtle
+        .digest('SHA-256', new TextEncoder().encode(input))
+        .then(hex32)
+        .catch(function () { try { return sha256Hex(input).slice(0, 32); } catch (e) { return null; } });
+    } else {
+      /* crypto.subtle 仅存在于安全上下文；http 访问 NAS 时缺席 →
+       * 纯 JS 同规则兜底（2026-11-17 修复：此前直接放弃导致 http 下零上报）。 */
+      try { machineHashPromise = Promise.resolve(sha256Hex(input).slice(0, 32)); }
+      catch (e) { machineHashPromise = Promise.resolve(null); }
     }
-    machineHashPromise = window.crypto.subtle
-      .digest('SHA-256', new TextEncoder().encode(CFG.appSalt + SALT_JOIN + code))
-      .then(hex32)
-      .catch(function () { return null; });
     return machineHashPromise;
   }
 
@@ -111,12 +178,17 @@
         })
       };
       try {
-        if (navigator.sendBeacon) {
-          navigator.sendBeacon(CFG.endpoint, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-        } else {
+        /* fetch 优先（2026-11-17 实测修复）：sendBeacon 的 JSON 跨域信标在需要
+         * CORS 预检时被浏览器静默丢弃（返回 true 但 POST 不发，实测证实）；
+         * 服务端严格要求 application/json（其他类型 415），text/plain 信标也不可用。
+         * fetch 走预检正常到达（服务端 /collect 有 OPTIONS/CORS）；keepalive 覆盖
+         * pagehide 卸载场景。机制零变化：同端点、同载荷、同三类事件。 */
+        if (typeof fetch === 'function') {
           fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(payload), keepalive: true, mode: 'cors' })
             .catch(function () { /* 忽略：统计不可影响主功能 */ });
+        } else if (navigator.sendBeacon) {
+          navigator.sendBeacon(CFG.endpoint, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
         }
       } catch (e) { /* ignore */ }
     });
