@@ -1,7 +1,7 @@
 {
   ".url": {
     "cn-math-taxonomy.Application": {
-      "title": "中小学知识图谱",
+      "title": "中小学知识图谱（本地版）",
       "icon": "images/icon_{0}.png",
       "type": "iframe",
       "protocol": "http",

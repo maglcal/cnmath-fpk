@@ -177,6 +177,11 @@ def check_c3(root, www):
 
     uic = json.loads(text(root / 'app/ui/config'))
     for key, entry in uic.get('.url', {}).items():
+        # 桌面入口 title 必须与获准显示名一致：安装名（manifest）与桌面名（ui/config）
+        # 分属两处，只改一处会出现「安装叫全名、桌面叫短名」的名称漂移
+        need(entry.get('title') == mf.get('display_name'),
+             'ui/config %s.title 与 display_name 不一致：%s ≠ %s'
+             % (key, entry.get('title'), mf.get('display_name')))
         for field in ['title', 'desc']:
             for w in banned:
                 need(w not in entry.get(field, ''),
