@@ -23,15 +23,21 @@ done
 PY=python
 command -v python >/dev/null 2>&1 || PY=python3
 
+VER="$(sed -n 's/^version=//p' "${ROOT}/manifest" | head -1)"
+# 分支测试版序号自动递增：vX.Y.Z.x（不带 main- 前缀）。重打同号请先删除旧产物。
+N=1
+while [ -e "${OUT}/cnmath-v${VER}.${N}.fpk" ]; do N=$((N + 1)); done
+BUILD_ID="${VER}.${N}"
+
 echo "==> 1/5 生成原创图标"
 "${PY}" "${ROOT}/tools/make_icons.py" "${ROOT}" | sed 's/^/    /'
 
 echo "==> 2/5 组装站点（上游只读，裁剪锚点不命中即失败）"
 if [ -n "${STATS_CONFIG}" ]; then
   "${PY}" "${ROOT}/tools/build_site.py" --root "${ROOT}" --upstream "${UPSTREAM}" \
-    --stats-config "${STATS_CONFIG}"
+    --build-id "${BUILD_ID}" --stats-config "${STATS_CONFIG}"
 else
-  "${PY}" "${ROOT}/tools/build_site.py" --root "${ROOT}" --upstream "${UPSTREAM}"
+  "${PY}" "${ROOT}/tools/build_site.py" --root "${ROOT}" --upstream "${UPSTREAM}" --build-id "${BUILD_ID}"
 fi
 
 echo "==> 3/5 引用完整性 + 上架合规闸门（授权条件 1–7）"
@@ -85,16 +91,12 @@ if [ -z "${FNPACK}" ] || [ ! -x "${FNPACK}" ]; then
   echo "ERROR: 未找到 fnpack，请把官方 fnpack 放到 ${ROOT}/.tools/fnpack.exe" >&2
   exit 1
 fi
-VER="$(sed -n 's/^version=//p' "${ROOT}/manifest" | head -1)"
 mkdir -p "${OUT}"
-# 分支测试版序号自动递增：vX.Y.Z.x（不带 main- 前缀）。重打同号请先删除旧产物。
-N=1
-while [ -e "${OUT}/cnmath-v${VER}.${N}.fpk" ]; do N=$((N + 1)); done
 WORK="$(mktemp -d)"
 ( cd "${WORK}" && "${FNPACK}" build --directory "${STAGE}" )
 BUILT="$(find "${WORK}" "${STAGE}" -maxdepth 2 -name '*.fpk' -print -quit 2>/dev/null || true)"
 [ -n "${BUILT}" ] || { echo "ERROR: fnpack 未产出 .fpk" >&2; exit 1; }
-FINAL="${OUT}/cnmath-v${VER}.${N}.fpk"
+FINAL="${OUT}/cnmath-v${BUILD_ID}.fpk"
 mv "${BUILT}" "${FINAL}"
 rm -rf "${WORK}"
 

@@ -6,12 +6,13 @@
 - 每个裁剪锚点都必须命中，命中不到直接 FAIL（上游一改就暴露，绝不静默漏过）。
 - 上游源码只读，改造全在 overlay/ 覆盖层。
 - 输出全部强制 LF。
-用法：python tools/build_site.py --upstream DIR --root ROOT [--stats-config FILE]
+用法：python tools/build_site.py --upstream DIR --root ROOT [--build-id ID] [--stats-config FILE]
 """
 import argparse
 import re
 import shutil
 import sys
+import time
 from pathlib import Path
 
 RUNTIME_FILES = [
@@ -52,6 +53,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--root', required=True)
     ap.add_argument('--upstream', required=True)
+    ap.add_argument('--build-id', default='local',
+                    help='测试构建序号（如 0.1.0.10），打到关于页版本戳')
     ap.add_argument('--stats-config', default=None,
                     help='私有 stats-endpoint.js；不传则不注入，产物零统计请求')
     args = ap.parse_args()
@@ -196,6 +199,24 @@ def main():
     shutil.copy2(overlay / 'assets/stats-config.js', out / 'assets/stats-config.js')
     shutil.copy2(overlay / 'ABOUT-NAS.html', out / 'ABOUT-NAS.html')
     shutil.copy2(overlay / 'CHANGES.html', out / 'CHANGES.html')
+
+    # 7.5 关于页版本戳：应用版本 / 测试构建号 / 上游快照 / 构建日期，构建时自动打戳。
+    # 占位符不许流入产物（verify_grant 断言 {{ 已清零），源页缺占位同样 FAIL。
+    mf = (root / 'manifest').read_text(encoding='utf-8')
+    mv = re.search(r'^version=(.+)$', mf, re.M)
+    need(bool(mv), 'manifest 缺少 version=')
+    about = out / 'ABOUT-NAS.html'
+    at = about.read_text(encoding='utf-8')
+    for token, value in {
+        '{{VER}}': (mv.group(1).strip() if mv else ''),
+        '{{BUILD_ID}}': args.build_id,
+        '{{UPSTREAM7}}': commit[:7],
+        '{{BUILD_DATE}}': time.strftime('%Y-%m-%d'),
+    }.items():
+        need(token in at, 'ABOUT-NAS.html 缺少版本戳占位 %s' % token)
+        at = at.replace(token, value)
+    about.write_text(at, encoding='utf-8', newline='\n')
+
     if args.stats_config:
         sc = Path(args.stats_config)
         need(sc.is_file(), '指定的统计配置不存在: %s' % sc)

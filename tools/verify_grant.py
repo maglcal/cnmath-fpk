@@ -291,6 +291,13 @@ def check_c5(root, www):
         need(bool(m2) and m2.group(1) == commit,
              'CHANGES.html 的上游 commit 与 UPSTREAM_COMMIT 不一致')
         need(ver in s, 'CHANGES.html 缺少 %s 的版本条目' % ver)
+        heads = re.findall(r'<h2>([\d.]+)', s)
+        need(len(heads) == len(set(heads)), 'CHANGES.html 存在重复版本条目: %s' %
+             sorted({h for h in heads if heads.count(h) > 1}))
+    if (www / 'ABOUT-NAS.html').is_file():
+        s = text(www / 'ABOUT-NAS.html')
+        need('{{' not in s, 'ABOUT-NAS.html 版本戳占位符未替换')
+        need(('应用版本 %s' % ver) in s, 'ABOUT-NAS.html 缺少「应用版本 %s」显示' % ver)
     need((root / 'AUTHORIZATION-GRANTED.md').is_file(), '缺失授权回信留档')
     notes.append('条件5 PASS：清单版本/commit 与工程一致，授权留档存在')
 
