@@ -11,15 +11,6 @@
       "control": {
         "accessPerm": "readonly"
       }
-    },
-    "cn-math-taxonomy.Full": {
-      "title": "中小学知识图谱（完整版）",
-      "icon": "images/icon_{0}.png",
-      "type": "url",
-      "protocol": "http",
-      "port": "",
-      "url": "/cgi/ThirdParty/cn-math-taxonomy/index.cgi/",
-      "allUsers": true
     }
   }
 }
