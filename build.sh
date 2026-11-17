@@ -2,7 +2,7 @@
 # 中小学知识图谱（本地版）· 飞牛 fnOS 应用构建入口
 # 链路：钉版本校验 → 组装站点（裁剪+覆盖）→ 生成图标 → 合规闸门 → fnpack 打包
 # 只有合规闸门 RESULT=PASS 才允许产出 .fpk。
-# 用法：bash build.sh [--upstream DIR] [--stats-config FILE | --no-stats] [--test]
+# 用法：bash build.sh [--upstream DIR] [--stats-config FILE | --no-stats] [--test | --release]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -10,6 +10,7 @@ UPSTREAM="${ROOT}/.build/cn-math-taxonomy"
 STATS_CONFIG=""
 STATS_AUTO=1
 TEST_BUILD=0
+RELEASE=0
 OUT="${ROOT}/dist"
 
 while [ $# -gt 0 ]; do
@@ -18,6 +19,7 @@ while [ $# -gt 0 ]; do
     --stats-config) STATS_CONFIG="$2"; STATS_AUTO=0; shift 2 ;;
     --no-stats) STATS_CONFIG=""; STATS_AUTO=0; shift ;;
     --test) TEST_BUILD=1; shift ;;
+    --release) RELEASE=1; shift ;;
     *) echo "未知参数: $1" >&2; exit 1 ;;
   esac
 done
@@ -26,10 +28,23 @@ PY=python
 command -v python >/dev/null 2>&1 || PY=python3
 
 VER="$(sed -n 's/^version=//p' "${ROOT}/manifest" | head -1)"
-# 分支测试版序号自动递增：vX.Y.Z.x（不带 main- 前缀）。重打同号请先删除旧产物。
-N=1
-while [ -e "${OUT}/cnmath-v${VER}.${N}.fpk" ]; do N=$((N + 1)); done
-BUILD_ID="${VER}.${N}"
+if [ "${RELEASE}" -eq 1 ]; then
+  # 正式发布：main-vX.Y.Z（git tag / Release / 产物文件名同一标识）。重打同号先删旧产物。
+  BUILD_ID="main-v${VER}"
+  BUILD_LABEL="正式版"
+  FINAL="${OUT}/cnmath-main-v${VER}.fpk"
+  if [ -e "${FINAL}" ]; then
+    echo "ERROR: ${FINAL} 已存在，重打同号请先删除旧产物" >&2
+    exit 1
+  fi
+else
+  # 分支测试版序号自动递增：vX.Y.Z.x（不带 main- 前缀）。重打同号请先删除旧产物。
+  N=1
+  while [ -e "${OUT}/cnmath-v${VER}.${N}.fpk" ]; do N=$((N + 1)); done
+  BUILD_ID="${VER}.${N}"
+  BUILD_LABEL="测试构建"
+  FINAL="${OUT}/cnmath-v${BUILD_ID}.fpk"
+fi
 
 # 统计端点默认策略：私有工作区有 stats-endpoint.js 就自动注入（gitignore 不入库，
 # 公开仓库没有该文件=天然零统计构建）。防止裸跑 build.sh 时静默漏注入。
@@ -44,9 +59,10 @@ echo "==> 1/5 生成原创图标"
 echo "==> 2/5 组装站点（上游只读，裁剪锚点不命中即失败）"
 if [ -n "${STATS_CONFIG}" ]; then
   "${PY}" "${ROOT}/tools/build_site.py" --root "${ROOT}" --upstream "${UPSTREAM}" \
-    --build-id "${BUILD_ID}" --stats-config "${STATS_CONFIG}"
+    --build-id "${BUILD_ID}" --build-label "${BUILD_LABEL}" --stats-config "${STATS_CONFIG}"
 else
-  "${PY}" "${ROOT}/tools/build_site.py" --root "${ROOT}" --upstream "${UPSTREAM}" --build-id "${BUILD_ID}"
+  "${PY}" "${ROOT}/tools/build_site.py" --root "${ROOT}" --upstream "${UPSTREAM}" \
+    --build-id "${BUILD_ID}" --build-label "${BUILD_LABEL}"
 fi
 
 echo "==> 3/5 引用完整性 + 上架合规闸门（授权条件 1–7）"
@@ -105,7 +121,6 @@ WORK="$(mktemp -d)"
 ( cd "${WORK}" && "${FNPACK}" build --directory "${STAGE}" )
 BUILT="$(find "${WORK}" "${STAGE}" -maxdepth 2 -name '*.fpk' -print -quit 2>/dev/null || true)"
 [ -n "${BUILT}" ] || { echo "ERROR: fnpack 未产出 .fpk" >&2; exit 1; }
-FINAL="${OUT}/cnmath-v${BUILD_ID}.fpk"
 mv "${BUILT}" "${FINAL}"
 rm -rf "${WORK}"
 
@@ -118,4 +133,8 @@ if ! "${PY}" "${ROOT}/tools/verify_fpk.py" "${FINAL}"; then
 fi
 ( cd "${OUT}" && sha256sum "$(basename "${FINAL}")" > "$(basename "${FINAL}").sha256" )
 echo "==> 5/5 打包完成: ${FINAL}"
-echo "    本包为分支测试版，真机验收通过后合并发布 main-v${VER}。"
+if [ "${RELEASE}" -eq 1 ]; then
+  echo "    本包为正式发布版 ${BUILD_ID}。"
+else
+  echo "    本包为分支测试版，真机验收通过后合并发布 main-v${VER}。"
+fi

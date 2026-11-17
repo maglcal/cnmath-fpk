@@ -55,6 +55,8 @@ def main():
     ap.add_argument('--upstream', required=True)
     ap.add_argument('--build-id', default='local',
                     help='测试构建序号（如 0.1.0.10），打到关于页版本戳')
+    ap.add_argument('--build-label', default='测试构建',
+                    help='版本戳构建类型标签（测试构建 / 正式版）')
     ap.add_argument('--stats-config', default=None,
                     help='私有 stats-endpoint.js；不传则不注入，产物零统计请求')
     args = ap.parse_args()
@@ -210,6 +212,7 @@ def main():
     for token, value in {
         '{{VER}}': (mv.group(1).strip() if mv else ''),
         '{{BUILD_ID}}': args.build_id,
+        '{{BUILD_LABEL}}': args.build_label,
         '{{UPSTREAM7}}': commit[:7],
         '{{BUILD_DATE}}': time.strftime('%Y-%m-%d'),
     }.items():
