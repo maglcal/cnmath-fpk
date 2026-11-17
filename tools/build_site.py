@@ -201,6 +201,15 @@ def main():
         need(sc.is_file(), '指定的统计配置不存在: %s' % sc)
         if sc.is_file():
             shutil.copy2(sc, out / 'assets/stats-endpoint.js')
+            # 关于页（统计开关所在页）必须先加载端点配置，否则 configured=false
+            # 会把开关禁用成「当前构建未配置统计服务」。按 overlay/ABOUT-NAS.html
+            # 锚点注释的约定，在注释行之前注入（0.1.0.9 修复：此前 4.4 只注入上游页）。
+            about = out / 'ABOUT-NAS.html'
+            t = about.read_text(encoding='utf-8')
+            t = patch(t, r'(<!-- 构建脚本须在本行之前注入 stats-endpoint\.js)',
+                      '\n<script src="assets/stats-endpoint.js"></script>\\1',
+                      'ABOUT-NAS 注入端点', 1)
+            about.write_text(t, encoding='utf-8', newline='\n')
     shutil.copy2(src / 'LICENSE', out / 'LICENSE-upstream.txt')
 
     # 8. 全量 LF：文本类按 UTF-8 可解码判定，二进制跳过

@@ -222,13 +222,21 @@ def check_c4(root, www):
         need("endpoint: ''" in s, '上游原始 endpoint 未置空')
 
     endpoint = www / 'assets/stats-endpoint.js'
+    # script 标签级匹配（注释里的文字提及不算引用）
+    ep_tag = re.compile(r'<script[^>]+src="[^"]*stats-endpoint\.js"')
+    cfg_tag = re.compile(r'<script[^>]+src="[^"]*stats-config\.js"')
     if endpoint.is_file():
         need('defaultEnabled' not in text(endpoint), '统计端点配置含默认开启开关')
+        # 注入了端点的构建：凡加载 stats-config.js 的页面都必须先加载端点配置，
+        # 否则关于页会误判「未配置」而禁用统计开关（0.1.0.9 修复的缺口，防复发）。
+        for p in www.rglob('*.html'):
+            s = text(p)
+            need(not cfg_tag.search(s) or ep_tag.search(s),
+                 '%s 加载了 stats-config.js 却未注入 stats-endpoint.js' % p.relative_to(www))
     else:
         # 未注入端点时，页面不得有指向该文件的 script 引用（否则 404 且开关不可用）
-        dangling = re.compile(r'<script[^>]+src="[^"]*stats-endpoint\.js"')
         for p in www.rglob('*.html'):
-            need(not dangling.search(text(p)),
+            need(not ep_tag.search(text(p)),
                  '%s 引用了不存在的 stats-endpoint.js' % p.relative_to(www))
         notes.append('条件4 附注：本次构建未注入统计端点，统计完全零请求')
 
