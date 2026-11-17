@@ -170,6 +170,11 @@ def check_c3(root, www):
     mf = manifest_kv(root)
     need(mf.get('display_name') == '中小学知识图谱（本地版）',
          'display_name 不是获准的名称：%s' % mf.get('display_name'))
+    # 角色归属（用户 2026-11-17 拍板）：开发者=原作者（内容来源），发布者=许诺（改编打包）
+    need('xiaoyang111222' in (mf.get('maintainer') or ''),
+         'manifest maintainer 必须署名原作者 xiaoyang111222：%s' % mf.get('maintainer'))
+    need(mf.get('distributor') == '许诺',
+         'manifest distributor 必须是发布者许诺：%s' % mf.get('distributor'))
     for field in ['display_name', 'desc', 'changelog']:
         v = mf.get(field, '')
         for w in banned:
