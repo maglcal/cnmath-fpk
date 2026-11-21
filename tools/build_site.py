@@ -23,6 +23,7 @@ RUNTIME_FILES = [
     'children/index.html', 'children/history.html', 'children/page.js',
     'children/history.js', 'children/children.css',
     'wrongbook/index.html', 'wrongbook/wrongbook.js', 'wrongbook/wrongbook.css',
+    'finals/index.html', 'finals/finals.js', 'finals/finals.css',
 ]
 DATA_FILES = [
     'topics.json', 'dependencies.json', 'id-aliases.json',
@@ -31,6 +32,7 @@ DATA_FILES = [
 HTML_PAGES = [
     'index.html', 'explore/index.html', 'diagnose/index.html',
     'children/index.html', 'children/history.html', 'wrongbook/index.html',
+    'finals/index.html',
 ]
 
 errors = []
@@ -199,6 +201,7 @@ def main():
     # 7. 覆盖层：纯本地事件钩子、统计适配、关于页、改动清单、许可全文
     shutil.copy2(overlay / 'assets/stats.js', out / 'assets/stats.js')
     shutil.copy2(overlay / 'assets/stats-config.js', out / 'assets/stats-config.js')
+    shutil.copy2(overlay / 'assets/update-check.js', out / 'assets/update-check.js')
     shutil.copy2(overlay / 'ABOUT-NAS.html', out / 'ABOUT-NAS.html')
     shutil.copy2(overlay / 'CHANGES.html', out / 'CHANGES.html')
 
@@ -219,6 +222,14 @@ def main():
         need(token in at, 'ABOUT-NAS.html 缺少版本戳占位 %s' % token)
         at = at.replace(token, value)
     about.write_text(at, encoding='utf-8', newline='\n')
+
+    # 7.6 版本更新检查：把当前版本烧进 update-check.js（{{VER}} 占位符同款纪律，
+    #     占位符不许流入产物）。
+    uc = out / 'assets/update-check.js'
+    ut = uc.read_text(encoding='utf-8')
+    need('__CNM_VERSION__' in ut, 'update-check.js 缺少 __CNM_VERSION__ 占位')
+    uc.write_text(ut.replace('__CNM_VERSION__', mv.group(1).strip() if mv else ''),
+                  encoding='utf-8', newline='\n')
 
     if args.stats_config:
         sc = Path(args.stats_config)

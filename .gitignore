@@ -8,3 +8,5 @@ __pycache__/
 # 统计端点真实配置（含 app_id / app_salt），只随构建产物分发，绝不入库
 app/www/assets/stats-endpoint.js
 overlay/assets/stats-endpoint.js
+# 论坛发帖稿与配图（含图床直链，仅限论坛正文场景，不入公开仓）
+store-listing/forum/

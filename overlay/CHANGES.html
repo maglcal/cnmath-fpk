@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-version="0.1.0" data-upstream-commit="aa2c22058222d0df404f1819e2fbdb97a62049ea">
+<html lang="zh-CN" data-version="0.1.1" data-upstream-commit="f4721bb947d95823ee8a41b2507ad411ff66e5e0">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -27,13 +27,33 @@
   <p class="muted">本页随每个版本同步更新，是原作者书面确认（2026-11-16）条件 2 与条件 5 的要求。</p>
 
   <div class="card">
-    <p><strong>壳版本</strong> <code>0.1.0</code>　<strong>上游 commit</strong>
-      <code>aa2c22058222d0df404f1819e2fbdb97a62049ea</code></p>
+    <p><strong>壳版本</strong> <code>0.1.1</code>　<strong>上游 commit</strong>
+      <code>f4721bb947d95823ee8a41b2507ad411ff66e5e0</code></p>
     <p><strong>原项目</strong> <a href="https://github.com/xiaoyang111222/cn-math-taxonomy">cn-math-taxonomy</a>
       （作者 xiaoyang111222 / @hassanyehiaa），<a href="https://math.pansgo.com/">math.pansgo.com</a>，
-      按 <a href="LICENSE-upstream.txt">CC BY-NC 4.0</a> 授权。</p>
-    <p><strong>显示名</strong> 中小学知识图谱（本地版）。本应用基于原项目改编，不是原项目官方版本，
-      与原作者不构成合作、代理或背书关系。</p>
+      按 <a href="LICENSE-upstream.txt">CC BY-NC 4.0</a> 许可提供。</p>
+    <p><strong>显示名</strong> 中小学知识图谱（本地版）。本应用基于原项目改编，并非原项目的对应版本，
+      与原作者无任何关联或背书关系。</p>
+  </div>
+
+  <h2>main-v0.1.1 · 正式发布</h2>
+  <div class="card">
+    <ul>
+      <li><strong>上游更新合入</strong>：上游钉版本 <code>aa2c220</code> → <code>f4721bb</code>（9 个提交），
+        含高中语文补齐（统编必修上、下与选必上、中、下）、历史 / 地理 / 生物高中段知识点与先修边补强、
+        小学道德与法治题库按课文内容重出全部 636 题（修复系统性重复）并补先修边、
+        科学锚定修正与历史诊断题量等数据修补。</li>
+      <li><strong>新功能·期末 7 天补漏计划</strong>：新增 <code>finals/</code> 页面，每天排几个薄弱知识点，
+        看讲解、做题、打卡，第 7 天复测；优先排本机错题本与诊断里的薄弱点，计划只存浏览器本地。</li>
+      <li><strong>商业元素照旧剔除</strong>：上游新增的商品点击统计代码（<code>goods/</code> 目录）
+        不在运行时白名单内，随商品推广页一并排除，产物零外链统计请求。</li>
+      <li><strong>新功能·版本更新提醒</strong>：「关于 / 数据来源」页新增「检查更新」按钮，
+        联网查询公开发布页比对版本（只读公开信息、不发送数据）；可选开启自动提醒
+        （每天最多一次，发现新版在首页提示）。不点击、不开启即零联网，
+        「断网也能用」承诺不变。</li>
+      <li><strong>合规措辞修正</strong>：关于 / 改动清单两页的背书否认表述统一为「无任何关联或背书关系」，
+        并清除随包页面禁用词（构建闸门 verify_grant 已把随包两页纳入禁用词扫描）。</li>
+    </ul>
   </div>
 
   <h2>main-v0.1.0 · 正式发布</h2>

@@ -64,18 +64,29 @@ def check_c1(root, www):
     need(not bad_anchors, '产物存在未授权可点击外链：\n    ' +
          '\n    '.join(sorted(set(bad_anchors))[:20]))
 
-    # 自动加载型外部引用（script/link/img/iframe/fetch/sendBeacon）一律禁止
+    # 自动加载型外部引用（script/link/img/iframe/fetch/sendBeacon）一律禁止。
+    # 显式白名单口子：仅 assets/update-check.js 可发起 fetch 到 api.github.com /
+    # github.com（用户手动点「检查更新」或显式开启自动提醒才触发，只读公开发布
+    # 信息、不发送数据）。这是产品「版本更新提醒」功能的必要联网边界，白名单
+    # 之外的任何文件、任何主机依旧零容忍。
     auto = re.compile(
         r'(?:<script[^>]+src|<link[^>]+href|<img[^>]+src|<iframe[^>]+src)="https?://'
         r'|(?:fetch|sendBeacon)\(\s*["\']https?://'
         r'|new\s+Image\(\)\.src\s*=\s*["\']https?://'
         r'|importScripts\(\s*["\']https?://', re.I)
+    update_host_ok = re.compile(r'https?://(?:api\.)?github\.com', re.I)
     for p in files:
         if p.suffix not in ('.html', '.js', '.css'):
             continue
         try:
             s = p.read_text(encoding='utf-8')
         except (UnicodeDecodeError, OSError):
+            continue
+        if p.name == 'update-check.js' and p.parent.name == 'assets':
+            # 白名单文件：自动加载型引用只能指向 GitHub 公开发布页
+            for m in re.finditer(r'(?:fetch|sendBeacon)\(\s*["\'](https?://[^"\']+)', s, re.I):
+                need(bool(update_host_ok.match(m.group(1))),
+                     'update-check.js 的联网目标超出白名单: %s' % m.group(1))
             continue
         need(not auto.search(s), '%s 存在自动加载型外部引用' % p.relative_to(www))
 
@@ -150,7 +161,7 @@ def check_c2(root, www, upstream):
     need(changes.is_file(), '缺失改动清单 CHANGES.html')
     if changes.is_file():
         s = text(changes)
-        need('0.1.0' in s, '改动清单缺少当前版本条目')
+        need('0.1.1' in s, '改动清单缺少当前版本条目')
 
     for pat in ['LICENSE-cytoscape.txt', 'LICENSE-dagre.txt',
                 'LICENSE-cytoscape-dagre.txt', 'LICENSE-qrcode-generator.txt', 'VENDOR.md']:
@@ -197,11 +208,19 @@ def check_c3(root, www):
     for w in banned:
         need(w not in blob, '安装向导文案含禁用词「%s」' % w)
 
-    # 关于页必须明确否认背书（否定语境允许出现这些词，但不能缺）
+    # 随包页面也是公开发布物：纳入禁用词扫描（此前只扫 manifest/ui/向导，页面漏网）
+    for rel in ['ABOUT-NAS.html', 'CHANGES.html']:
+        p = www / rel
+        if p.is_file():
+            s = text(p)
+            for w in banned:
+                need(w not in s, '随包页面 %s 含禁用词「%s」' % (rel, w))
+
+    # 关于页必须明确否认背书（措辞用合规表述，禁用词已由上方扫描清零，不靠否定语境放行）
     if (www / 'ABOUT-NAS.html').is_file():
         s = text(www / 'ABOUT-NAS.html')
-        need('不构成合作、代理或背书关系' in s or '不暗示' in s,
-             '关于页缺少不构成背书关系的明确声明')
+        need('无任何关联或背书关系' in s or '不暗示' in s,
+             '关于页缺少无关联或背书关系的明确声明')
     notes.append('条件3 PASS：显示名/描述/向导零禁用词，关于页明确否认背书')
 
 

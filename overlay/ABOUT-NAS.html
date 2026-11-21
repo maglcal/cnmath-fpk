@@ -34,15 +34,15 @@
   <p class="muted" id="build-stamp">应用版本 {{VER}} · {{BUILD_LABEL}} {{BUILD_ID}} · 上游快照 {{UPSTREAM7}} · 构建日期 {{BUILD_DATE}}</p>
 
   <div class="card">
-    <strong>本应用基于原项目改编，不是原项目的官方版本。</strong>
+    <strong>本应用基于原项目改编，并非原项目的对应版本。</strong>
     <p>原作者署名：<strong>xiaoyang111222（@hassanyehiaa）</strong>。知识图谱、题库、自适应前置诊断
       及全部站点页面来自开源项目
       <a href="https://github.com/xiaoyang111222/cn-math-taxonomy">cn-math-taxonomy</a>；
       原在线站点 <a href="https://math.pansgo.com/">math.pansgo.com</a>。</p>
-    <p>原项目采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.zh-hans">CC BY-NC 4.0（署名-非商业性使用 4.0 国际）</a> 授权，
+    <p>原项目采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.zh-hans">CC BY-NC 4.0（署名-非商业性使用 4.0 国际）</a> 许可，
       <a href="LICENSE-upstream.txt">许可全文（随包，点击查看）</a>。本应用永久免费、非商业，
-      <strong>不暗示与原作者存在任何合作、代理或背书关系</strong>；原作者与本应用之间
-      不构成合作、代理或背书关系。</p>
+      <strong>不暗示与原作者存在任何关联或背书关系</strong>；原作者与本应用之间
+      无任何关联或背书关系。</p>
     <p>本应用由第三方改编者自行维护。<strong>原项目与原作者不为本应用提供任何支持、服务或承诺</strong>；
       应用使用问题请勿向原作者提出。数据与题目问题欢迎到
       <a href="https://github.com/xiaoyang111222/cn-math-taxonomy/issues/new/choose">原仓库提交 Issue</a> 反馈。</p>
@@ -68,7 +68,7 @@
   <div class="card warn">
     <p>原作者已明确注明：知识点拆分粒度、掌握标准、诊断题答案，尤其<strong>先修关系</strong>
       仍需一线教师审核后才能用于教学、诊断或学习路径推荐；高中题与英语题未做盲解复核；
-      小学册次目录与高中章节目录多数未逐页核对官方教材。</p>
+      小学册次目录与高中章节目录多数未逐页比对教材原文。</p>
     <p>请把本应用当作自学与复习辅助工具，<strong>不要作为权威教学结论</strong>。发现题目或数据问题，
       建议到<a href="https://github.com/xiaoyang111222/cn-math-taxonomy/issues/new/choose">原仓库提交 Issue</a> 反馈。</p>
   </div>
@@ -92,8 +92,21 @@
     <a class="btn" href="./">返回应用首页</a>
   </div>
 
-  <p class="muted" style="margin-top:26px">壳工程（manifest、CGI 脚本、安装向导、本页与统计适配层）Copyright © 2026 许诺，按 MIT License 授权；
-    站点内容 Copyright © 原作者，按 CC BY-NC 4.0 授权。</p>
+  <h2>版本更新</h2>
+  <div class="card">
+    <p>本页显示当前版本（见页面顶部版本戳）。点击下方按钮可联网查询
+      <a href="https://github.com/maglcal/cnmath-fpk/releases">maglcal/cnmath-fpk 公开发布页</a>
+      是否有新版本；查询只读公开信息，不发送任何数据。</p>
+    <p><button class="btn" id="update-check-btn">检查更新</button>
+      <button class="btn" id="update-auto">开启自动提醒</button></p>
+    <p class="muted" id="update-result">未检查。自动提醒（可选）：开启后每天最多联网查询一次，
+      发现新版本时在首页显示提醒横幅；不开启则零联网，「断网也能用」不受影响。</p>
+    <p class="muted">更新包同样发布在上述发布页（<code>cnmath-main-vX.Y.Z.fpk</code>），
+      下载后在飞牛「应用中心 → 手动安装」升级即可，配置与数据不受影响。</p>
+  </div>
+
+  <p class="muted" style="margin-top:26px">壳工程（manifest、CGI 脚本、安装向导、本页与统计适配层）Copyright © 2026 许诺，按 MIT License 提供；
+    站点内容 Copyright © 原作者，按 CC BY-NC 4.0 提供。</p>
 </main>
 <!-- 构建脚本须在本行之前注入 stats-endpoint.js（仅当配置了统计服务）。
      关于页只读写开关，不产生任何上报事件。 -->
@@ -123,5 +136,6 @@
   });
 })();
 </script>
+<script src="assets/update-check.js"></script>
 </body>
 </html>
