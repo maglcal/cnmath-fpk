@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-version="0.1.1" data-upstream-commit="f4721bb947d95823ee8a41b2507ad411ff66e5e0" data-data-commit="4e87079b378236e282cde238ef1dcd9f211eb9f5">
+<html lang="zh-CN" data-version="0.1.2" data-upstream-commit="f4721bb947d95823ee8a41b2507ad411ff66e5e0" data-data-commit="4e87079b378236e282cde238ef1dcd9f211eb9f5">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -27,13 +27,31 @@
   <p class="muted">本页随每个版本同步更新，是原作者书面确认（2026-11-16）条件 2 与条件 5 的要求。</p>
 
   <div class="card">
-    <p><strong>壳版本</strong> <code>0.1.1</code>　<strong>上游 commit</strong>
-      <code>f4721bb947d95823ee8a41b2507ad411ff66e5e0</code></p>
+    <p><strong>最近更新</strong></p>
+    <ul>
+      <li>题库与课标持续更新：诊断答案校验修复、章节纠错、新增高中思想政治学科数据，多学科课标核对补页码（0.1.1–0.1.2）</li>
+      <li>新增期末冲刺复习与版本更新提醒，期末补漏计划持续扩充（0.1.1）</li>
+      <li>应用瘦身与合规修净，本地使用体验与稳定性持续改进（0.1.0–0.1.1）</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <p><strong>壳版本</strong> <code>0.1.2</code>　<strong>上游站点快照</strong>
+      <code>f4721bb9</code>　<strong>上游数据快照</strong> <code>4e87079b</code></p>
     <p><strong>原项目</strong> <a href="https://github.com/xiaoyang111222/cn-math-taxonomy">cn-math-taxonomy</a>
       （作者 xiaoyang111222 / @hassanyehiaa），<a href="https://math.pansgo.com/">math.pansgo.com</a>，
       按 <a href="LICENSE-upstream.txt">CC BY-NC 4.0</a> 许可提供。</p>
     <p><strong>显示名</strong> 中小学知识图谱（本地版）。本应用基于原项目改编，并非原项目的对应版本，
       与原作者无任何关联或背书关系。</p>
+  </div>
+
+  <h2>main-v0.1.2 · 正式发布</h2>
+  <div class="card">
+    <ul>
+      <li><strong>上游拆分适配</strong>：上游已把网站源码迁出公开仓（2026-11-25），本版起本应用站点源码冻结于拆分前快照、数据持续跟踪上游同步；关于页与改动清单改为标注「站点快照 + 数据快照」双上游版本。</li>
+      <li><strong>数据更新合入</strong>：上游数据快照 <code>f4721bb</code> → <code>4e87079</code>——修复 55 道题的诊断答案校验（浮点残差改为精确求值）、纠错章节归属、新增高中思想政治 153 个知识点与 612 道题（数据经诊断页直达可用，首页学科入口随站点源码冻结暂不显示）、义教与高中多学科课标核对补印刷页码。</li>
+      <li><strong>质量闸门</strong>：同步前跑上游数据侧校验全部通过；随包合规校验条件 1–7 全部通过。</li>
+    </ul>
   </div>
 
   <h2>main-v0.1.1 · 正式发布</h2>
