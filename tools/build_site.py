@@ -71,10 +71,13 @@ def main():
     need(src.is_dir(), '上游目录不存在: %s' % src)
     need((src / 'LICENSE').is_file(), '上游 LICENSE 缺失')
     need((root / 'UPSTREAM_COMMIT').is_file(), 'UPSTREAM_COMMIT 缺失')
+    need((root / 'UPSTREAM_DATA_COMMIT').is_file(), 'UPSTREAM_DATA_COMMIT 缺失'
+         '（上游 2026-11-25 拆分后走双轨：站点源冻结 + 数据经 tools/sync_data.py 同步）')
     if errors:
         return report()
 
     commit = (root / 'UPSTREAM_COMMIT').read_text(encoding='utf-8').strip()
+    data_commit = (root / 'UPSTREAM_DATA_COMMIT').read_text(encoding='utf-8').strip()
     head = ''
     try:
         import subprocess
@@ -82,7 +85,31 @@ def main():
                                       text=True).strip()
     except Exception as e:
         errors.append('无法读取上游 HEAD: %s' % e)
-    need(head == commit, '上游 HEAD(%s) 与 UPSTREAM_COMMIT(%s) 不一致；同步上游须显式更新钉版本' % (head[:8], commit[:8]))
+    if head:
+        # 拆分后快照 HEAD 停在 data-sync 同步链上（站点基线 + 数据覆盖 commit），
+        # 不再要求 HEAD == 站点 commit，改为三条结构校验：
+        st = subprocess.run(['git', '-C', str(src), 'status', '--porcelain'],
+                            capture_output=True, text=True)
+        need(not st.stdout.strip(),
+             '快照工作树有未提交改动，构建必须基于干净的同步 commit:\n%s' % st.stdout.strip()[:400])
+        anc = subprocess.run(['git', '-C', str(src), 'merge-base', '--is-ancestor', commit, head],
+                             capture_output=True)
+        need(anc.returncode == 0,
+             '快照 HEAD(%s) 不包含站点基线 UPSTREAM_COMMIT(%s)' % (head[:8], commit[:8]))
+        # 数据同步点在 origin/main 上、不在本地 data-sync 链上，不能用祖先关系校验；
+        # 改为实质校验：快照 HEAD 中各数据文件 blob 必须与数据同步点逐一一致。
+        for name in DATA_FILES:
+            b1 = subprocess.run(['git', '-C', str(src), 'rev-parse', 'HEAD:data/%s' % name],
+                                capture_output=True, text=True)
+            b2 = subprocess.run(['git', '-C', str(src), 'rev-parse', '%s:data/%s' % (data_commit, name)],
+                                capture_output=True, text=True)
+            need(b1.returncode == 0, '快照 HEAD 缺少 data/%s' % name)
+            need(b2.returncode == 0,
+                 '数据同步点 %s 不在快照仓对象库中，先在快照仓 git fetch origin' % data_commit[:8])
+            if b1.returncode == 0 and b2.returncode == 0:
+                need(b1.stdout.strip() == b2.stdout.strip(),
+                     'data/%s 与数据同步点 %s 不一致（快照被改动或 UPSTREAM_DATA_COMMIT 过期）'
+                     % (name, data_commit[:8]))
 
     # 清场重建（app/www 是产物，非源码）
     if out.exists():
@@ -217,6 +244,7 @@ def main():
         '{{BUILD_ID}}': args.build_id,
         '{{BUILD_LABEL}}': args.build_label,
         '{{UPSTREAM7}}': commit[:7],
+        '{{DATA_UPSTREAM7}}': data_commit[:7],
         '{{BUILD_DATE}}': time.strftime('%Y-%m-%d'),
     }.items():
         need(token in at, 'ABOUT-NAS.html 缺少版本戳占位 %s' % token)

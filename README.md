@@ -36,7 +36,7 @@ bash build.sh             # 分支测试版，产出 dist/cnmath-vX.Y.Z.x.fpk
 ```
 
 - 依赖 `fnpack`（放 `.tools/fnpack.exe`，见[飞牛开发者文档](https://developer.fnnas.com/docs/cli/fnpack/)）。
-- 上游快照钉死在 `UPSTREAM_COMMIT`，构建时校验一致；裁剪与覆盖均绑定锚点，锚点不命中即失败。
+- 上游站点源码钉死在 `UPSTREAM_COMMIT`（2026-11-25 上游把网站源码迁出公开仓后**冻结**，不再跟随）；数据经 `python tools/sync_data.py --apply` 从上游 `origin/main` 同步（钉在 `UPSTREAM_DATA_COMMIT`，同步前先 `--list` 人审提交清单）。构建时校验快照仓 HEAD 包含双基线、工作树干净；裁剪与覆盖均绑定锚点，锚点不命中即失败。
 - `overlay/assets/stats-endpoint.js` 为私有配置，不随仓库分发；缺失时构建产物为零统计版本（`--no-stats` 亦可显式指定）。
 - 只有合规校验全部通过才允许产出 `.fpk`。
 

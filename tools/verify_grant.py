@@ -159,9 +159,6 @@ def check_c2(root, www, upstream):
 
     changes = www / 'CHANGES.html'
     need(changes.is_file(), '缺失改动清单 CHANGES.html')
-    if changes.is_file():
-        s = text(changes)
-        need('0.1.1' in s, '改动清单缺少当前版本条目')
 
     for pat in ['LICENSE-cytoscape.txt', 'LICENSE-dagre.txt',
                 'LICENSE-cytoscape-dagre.txt', 'LICENSE-qrcode-generator.txt', 'VENDOR.md']:
@@ -305,10 +302,14 @@ def check_c4(root, www):
 
 
 def check_c5(root, www):
-    """条件 5：清单版本与上游 commit 一致。"""
+    """条件 5：清单版本与上游双 commit（站点基线 + 数据同步点）一致。"""
     mf = manifest_kv(root)
     ver = mf.get('version', '')
     commit = text(root / 'UPSTREAM_COMMIT').strip()
+    need((root / 'UPSTREAM_DATA_COMMIT').is_file(), '缺失 UPSTREAM_DATA_COMMIT'
+         '（上游拆分后双轨钉版本，先跑 tools/sync_data.py --apply）')
+    data_commit = text(root / 'UPSTREAM_DATA_COMMIT').strip() \
+        if (root / 'UPSTREAM_DATA_COMMIT').is_file() else ''
     need(bool(re.fullmatch(r'\d+\.\d+\.\d+', ver)), 'manifest version 不是三段式: %s' % ver)
     if (www / 'CHANGES.html').is_file():
         s = text(www / 'CHANGES.html')
@@ -318,7 +319,11 @@ def check_c5(root, www):
              (m.group(1) if m else '缺失', ver))
         m2 = re.search(r'data-upstream-commit="([^"]+)"', s)
         need(bool(m2) and m2.group(1) == commit,
-             'CHANGES.html 的上游 commit 与 UPSTREAM_COMMIT 不一致')
+             'CHANGES.html 的站点基线 commit 与 UPSTREAM_COMMIT 不一致')
+        m3 = re.search(r'data-data-commit="([^"]+)"', s)
+        need(bool(m3) and m3.group(1) == data_commit,
+             'CHANGES.html 的 data-data-commit(%s) 与 UPSTREAM_DATA_COMMIT(%s) 不一致'
+             % (m3.group(1) if m3 else '缺失', data_commit[:12] or '缺失'))
         need(ver in s, 'CHANGES.html 缺少 %s 的版本条目' % ver)
         heads = re.findall(r'<h2>([\d.]+)', s)
         need(len(heads) == len(set(heads)), 'CHANGES.html 存在重复版本条目: %s' %
